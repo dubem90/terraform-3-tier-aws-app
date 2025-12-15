@@ -96,12 +96,10 @@ resource "aws_eip" "nat_eip" {
 
 resource "aws_nat_gateway" "natgw" {
   allocation_id = aws_eip.nat_eip.id
-  subnet_id     = values(aws_subnet.public)[0].id  # NAT goes in a public subnet
-
-  tags = {
-    Name = "${var.project_name}-natgw"
-  }
+  subnet_id     = aws_subnet.public["us-east-1a"].id
+  tags          = { Name = "${var.project_name}-natgw" }
 }
+
 
 ########################################
 # Public Route Table
@@ -121,16 +119,15 @@ resource "aws_route_table" "public_rt" {
 }
 
 resource "aws_route_table_association" "public_assoc" {
-  for_each        = aws_subnet.public
-  subnet_id       = each.value.id
-  route_table_id  = aws_route_table.public_rt.id
+  for_each       = aws_subnet.public
+  subnet_id      = each.value.id
+  route_table_id = aws_route_table.public_rt.id
 }
 
 ########################################
-# Private Route Table (App + DB)
+# Private Route Table (App - with NAT)
 ########################################
-
-resource "aws_route_table" "private_rt" {
+resource "aws_route_table" "private_app_rt" {
   vpc_id = aws_vpc.main.id
 
   route {
@@ -138,14 +135,25 @@ resource "aws_route_table" "private_rt" {
     nat_gateway_id = aws_nat_gateway.natgw.id
   }
 
-  tags = {
-    Name = "${var.project_name}-private-rt"
-  }
+  tags = { Name = "${var.project_name}-private-app-rt" }
 }
 
-resource "aws_route_table_association" "private_assoc" {
-  for_each        = merge(aws_subnet.private, aws_subnet.db)
-  subnet_id       = each.value.id
-  route_table_id  = aws_route_table.private_rt.id
+resource "aws_route_table_association" "private_app_assoc" {
+  for_each       = aws_subnet.private
+  subnet_id      = each.value.id
+  route_table_id = aws_route_table.private_app_rt.id
 }
 
+########################################
+# Private Route Table (DB - no internet)
+########################################
+resource "aws_route_table" "private_db_rt" {
+  vpc_id = aws_vpc.main.id
+  tags   = { Name = "${var.project_name}-private-db-rt" }
+}
+
+resource "aws_route_table_association" "private_db_assoc" {
+  for_each       = aws_subnet.db
+  subnet_id      = each.value.id
+  route_table_id = aws_route_table.private_db_rt.id
+}
