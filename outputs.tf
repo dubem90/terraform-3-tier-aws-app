@@ -9,17 +9,17 @@ output "vpc_id" {
 
 output "public_subnet_ids" {
   description = "List of public subnet IDs"
-  value       = [for s in aws_subnet.public : s.id]   # FIXED for for_each
+  value       = [for s in aws_subnet.public : s.id] # FIXED for for_each
 }
 
 output "private_subnet_ids" {
   description = "List of private subnet IDs"
-  value       = [for s in aws_subnet.private : s.id]  # FIXED for for_each
+  value       = [for s in aws_subnet.private : s.id] # FIXED for for_each
 }
 
 output "db_subnet_ids" {
   description = "List of DB subnet IDs"
-  value       = [for s in aws_subnet.db : s.id]       # FIXED for for_each
+  value       = [for s in aws_subnet.db : s.id] # FIXED for for_each
 }
 
 #############################################
