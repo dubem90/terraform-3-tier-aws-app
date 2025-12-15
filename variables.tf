@@ -55,7 +55,7 @@ variable "db_subnets" {
 variable "app_ami" {
   description = "AMI ID for application EC2 instances"
   type        = string
-  default     = "ami-068c0051b15cdb816"
+  default     = "ami-0c02fb55956c7d316"
 }
 
 variable "app_instance_type" {
